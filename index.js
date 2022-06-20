@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
+const generateToken = require('./token');
 
 const app = express();
 app.use(bodyParser.json());
@@ -20,6 +21,18 @@ app.get('/talker', async (_req, res) => {
   } catch (error) {
     return res.status(500).end();
   }
+});
+
+// post login nao podia usar funcao anonima, causava erro de lint, 
+// tentei usar chamar uma funcao login declarando ela antes, tentei passar para arrow, 
+// mas a unica solução foi usar async que poderia aplicar no token,
+// porem nao e preciso e portanto nao foi inserido o await na hora de gerar o token.
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ message: 'missing fields' });
+  const token = generateToken();
+  res.status(200).json({ token });
 });
 
 app.get('/talker/:id', async (req, res) => {
