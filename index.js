@@ -81,7 +81,6 @@ app.put('/talker/:id', async (req, res) => {
   if (!talkIndex) return res.status(404).json({ message: 'talk not found!' });
   fetched[numberID - 1] = { name, age, id: numberID, talk };
   await updateTalkers(fetched);
-  console.log(await fetchTalkers());
   res.status(200).json((await fetchTalkers())[numberID - 1]);
 });
 
@@ -95,6 +94,20 @@ app.get('/talker/:id', async (req, res) => {
   } catch (error) {
     return res.status(500).end();
   }
+});
+
+app.delete('/talker/:id', async (req, res) => {
+  const { id } = req.params;
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
+  if (token.length !== 16) return res.status(401).json({ message: 'Token inválido' });
+  const fetched = await fetchTalkers();
+  const talkIndex = fetched.find((talker) => talker.id === Number(id));
+  if (!talkIndex) return res.status(404).json({ message: 'talk not found!' });
+  const numberID = Number(id) - 1;
+  fetched.splice(numberID, 1);
+  await updateTalkers(fetched);
+  res.status(204).end();
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
