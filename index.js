@@ -63,10 +63,6 @@ app.post('/talker', async (req, res) => {
   }
 });
 
-// aqui foi preciso alterar o if (talkindex = -1) que faria sentido 
-// quando o index nao for encontrado para 0 ja que temos o +1 na hora
-// de declarar o talkindex;
-
 app.put('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const { name, age, talk } = req.body;
@@ -84,18 +80,6 @@ app.put('/talker/:id', async (req, res) => {
   res.status(200).json((await fetchTalkers())[numberID - 1]);
 });
 
-app.get('/talker/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const fetched = await fetchTalkers();
-    const identified = fetched.find((talker) => talker.id === Number(id));
-    if (!identified) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
-    res.status(200).json(identified);
-  } catch (error) {
-    return res.status(500).end();
-  }
-});
-
 app.delete('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const token = req.headers.authorization;
@@ -108,6 +92,31 @@ app.delete('/talker/:id', async (req, res) => {
   fetched.splice(numberID, 1);
   await updateTalkers(fetched);
   res.status(204).end();
+});
+
+app.get('/talker/search', async (req, res) => {
+  // aqui foi preciso verificar com o teste ja que nao era utilizada a query 'name' como nos exercicios anteriores
+  // com o console.log(req.query); consegui pegar a query e confirmando com o arquivo de teste declarei a const 'q';
+  const { q } = req.query;
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
+  if (token.length !== 16) return res.status(401).json({ message: 'Token inválido' });
+  const fetched = await fetchTalkers();
+  const talkIndex = fetched.filter((talker) => talker.name.includes(q));
+  if (!talkIndex) return res.status(404).json({ message: 'talk not found!' });
+  res.status(200).json(talkIndex);
+});
+
+app.get('/talker/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fetched = await fetchTalkers();
+    const identified = fetched.find((talker) => talker.id === Number(id));
+    if (!identified) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+    res.status(200).json(identified);
+  } catch (error) {
+    return res.status(500).end();
+  }
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
