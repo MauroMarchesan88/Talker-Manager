@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
 const generateToken = require('./token');
+const { checkMail, checkPwd } = require('./loginUtils');
 
 const app = express();
 app.use(bodyParser.json());
@@ -30,7 +31,10 @@ app.get('/talker', async (_req, res) => {
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'missing fields' });
+  const checkedEmail = checkMail(email);
+  if (email !== checkedEmail) return res.status(400).json({ message: checkedEmail });
+  const checkedPwd = checkPwd(password);
+  if (password !== checkedPwd) return res.status(400).json({ message: checkedPwd });
   const token = generateToken();
   res.status(200).json({ token });
 });
